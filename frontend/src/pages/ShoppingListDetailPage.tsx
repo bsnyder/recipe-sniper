@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { getShoppingListById, deleteShoppingList, updateShoppingList } from '../api/client';
 import type { ShoppingListDetailResponse, ShoppingListItemResponse } from '../types';
+
+interface Props {
+  listId: number;
+  onBack: () => void;
+  onDeleted: () => void;
+}
 
 interface EditableItem {
   id: number | null;
@@ -14,9 +19,8 @@ function toEditable(item: ShoppingListItemResponse): EditableItem {
   return { id: item.id, name: item.name, quantity: item.quantity ?? '', unit: item.unit ?? '' };
 }
 
-export default function ShoppingListDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+export default function ShoppingListDetailPage({ listId, onBack, onDeleted }: Props) {
+  const id = listId;
   const [list, setList] = useState<ShoppingListDetailResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<number>>(new Set());
@@ -26,8 +30,7 @@ export default function ShoppingListDetailPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    getShoppingListById(Number(id))
+    getShoppingListById(id)
       .then(setList)
       .catch((err) =>
         setError(err instanceof Error ? err.message : 'Failed to load list')
@@ -44,10 +47,9 @@ export default function ShoppingListDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!id) return;
     try {
-      await deleteShoppingList(Number(id));
-      navigate('/shopping-lists');
+      await deleteShoppingList(id);
+      onDeleted();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete');
     }
@@ -80,11 +82,10 @@ export default function ShoppingListDetailPage() {
   };
 
   const handleSave = async () => {
-    if (!id) return;
     setSaving(true);
     setError(null);
     try {
-      const updated = await updateShoppingList(Number(id), {
+      const updated = await updateShoppingList(id, {
         name: editName,
         items: editItems.map((item) => ({
           id: item.id,
@@ -115,9 +116,10 @@ export default function ShoppingListDetailPage() {
 
   return (
     <div>
+      <button onClick={onBack} style={{ marginBottom: '1rem' }}>← Back to lists</button>
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
         {editing ? (
           <input
             type="text"
@@ -161,27 +163,27 @@ export default function ShoppingListDetailPage() {
       {editing ? (
         <div>
           {editItems.map((item, index) => (
-            <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+            <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input
                 type="text"
                 value={item.quantity}
                 onChange={(e) => updateItem(index, 'quantity', e.target.value)}
                 placeholder="Qty"
-                style={{ width: '60px', padding: '0.25rem' }}
+                style={{ flex: '0 0 60px', minWidth: '50px', padding: '0.25rem' }}
               />
               <input
                 type="text"
                 value={item.unit}
                 onChange={(e) => updateItem(index, 'unit', e.target.value)}
                 placeholder="Unit"
-                style={{ width: '80px', padding: '0.25rem' }}
+                style={{ flex: '0 0 80px', minWidth: '60px', padding: '0.25rem' }}
               />
               <input
                 type="text"
                 value={item.name}
                 onChange={(e) => updateItem(index, 'name', e.target.value)}
                 placeholder="Item name"
-                style={{ flex: 1, padding: '0.25rem' }}
+                style={{ flex: '1 1 120px', minWidth: 0, padding: '0.25rem' }}
               />
               <button onClick={() => removeItem(index)} style={{ color: 'red' }}>✕</button>
             </div>

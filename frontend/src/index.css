@@ -9,6 +9,24 @@ body {
   color: #333;
 }
 
+/* App layout */
+.app-container {
+  max-width: 960px;
+  width: 90vw;
+  margin: 0 auto;
+  padding: clamp(0.75rem, 2vw, 2rem);
+}
+
+.app-section {
+  padding: clamp(1rem, 3vh, 2.5rem) 0;
+}
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 0;
+}
+
 a {
   color: #1a73e8;
   text-decoration: none;
@@ -46,9 +64,51 @@ input[type="url"] {
 }
 
 table {
+  width: 100%;
   border-top: 2px solid #ddd;
 }
 
 th {
   border-bottom: 2px solid #ddd;
+}
+
+/* Responsive tables */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 600px) {
+  .app-container {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  table {
+    font-size: 0.875rem;
+  }
+
+  th, td {
+    padding: 0.35rem !important;
+  }
+
+  input[type="text"],
+  input[type="url"] {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  table {
+    font-size: 0.8rem;
+  }
 }

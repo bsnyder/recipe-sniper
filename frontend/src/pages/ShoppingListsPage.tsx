@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { getAllShoppingLists, deleteShoppingList } from '../api/client';
 import type { ShoppingListResponse } from '../types';
-import { useNavigate } from 'react-router-dom';
+import ShoppingListDetailPage from './ShoppingListDetailPage';
 
-export default function ShoppingListsPage() {
+interface Props {
+  refreshKey: number;
+}
+
+export default function ShoppingListsPage({ refreshKey }: Props) {
   const [lists, setLists] = useState<ShoppingListResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [selectedListId, setSelectedListId] = useState<number | null>(null);
 
   useEffect(() => {
     loadLists();
-  }, []);
+  }, [refreshKey]);
 
   const loadLists = async () => {
     try {
@@ -29,6 +33,19 @@ export default function ShoppingListsPage() {
     }
   };
 
+  if (selectedListId !== null) {
+    return (
+      <div>
+        <h2>Shopping Lists</h2>
+        <ShoppingListDetailPage
+          listId={selectedListId}
+          onBack={() => { setSelectedListId(null); loadLists(); }}
+          onDeleted={() => { setSelectedListId(null); loadLists(); }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2>Shopping Lists</h2>
@@ -37,6 +54,7 @@ export default function ShoppingListsPage() {
       {lists.length === 0 ? (
         <p>No shopping lists yet. Select recipes to create one.</p>
       ) : (
+        <div className="table-wrapper">
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -51,10 +69,10 @@ export default function ShoppingListsPage() {
             {lists.map((l) => (
               <tr key={l.id} style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.5rem' }}>
-                  <a href={`/shopping-lists/${l.id}`} onClick={(e) => {
-                    e.preventDefault();
-                    navigate(`/shopping-lists/${l.id}`);
-                  }}>{l.name}</a>
+                  <a
+                    href="#"
+                    onClick={(e) => { e.preventDefault(); setSelectedListId(l.id); }}
+                  >{l.name}</a>
                 </td>
                 <td style={{ padding: '0.5rem' }}>{l.recipeCount}</td>
                 <td style={{ padding: '0.5rem' }}>{l.itemCount}</td>
@@ -68,6 +86,7 @@ export default function ShoppingListsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

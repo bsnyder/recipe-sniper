@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
 import { getAllRecipes, deleteRecipe, createShoppingList, getAllShoppingLists, addRecipesToShoppingList } from '../api/client';
 import type { RecipeResponse, ShoppingListResponse } from '../types';
-import { useNavigate } from 'react-router-dom';
 
-export default function RecipeListPage() {
+interface Props {
+  refreshKey: number;
+  onShoppingListCreated?: () => void;
+}
+
+export default function RecipeListPage({ refreshKey, onShoppingListCreated }: Props) {
   const [recipes, setRecipes] = useState<RecipeResponse[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [listName, setListName] = useState('');
@@ -11,12 +15,11 @@ export default function RecipeListPage() {
   const [error, setError] = useState<string | null>(null);
   const [existingLists, setExistingLists] = useState<ShoppingListResponse[]>([]);
   const [selectedListId, setSelectedListId] = useState<number | ''>('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadRecipes();
     getAllShoppingLists().then(setExistingLists).catch(() => {});
-  }, []);
+  }, [refreshKey]);
 
   const loadRecipes = async (query?: string) => {
     try {
@@ -58,11 +61,13 @@ export default function RecipeListPage() {
     e.preventDefault();
     if (selected.size === 0) return;
     try {
-      const list = await createShoppingList(
+      await createShoppingList(
         listName || 'Shopping List',
         Array.from(selected)
       );
-      navigate(`/shopping-lists/${list.id}`);
+      setSelected(new Set());
+      setListName('');
+      onShoppingListCreated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create list');
     }
@@ -72,7 +77,7 @@ export default function RecipeListPage() {
     <div>
       <h2>Recipes</h2>
 
-      <form onSubmit={handleSearch} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+      <form onSubmit={handleSearch} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <input
           type="text"
           value={search}
@@ -94,6 +99,7 @@ export default function RecipeListPage() {
         <p>{search ? 'No recipes match your search.' : 'No recipes yet. Add one from the Add Recipe page.'}</p>
       ) : (
         <>
+          <div className="table-wrapper">
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
@@ -115,10 +121,7 @@ export default function RecipeListPage() {
                     />
                   </td>
                   <td style={{ padding: '0.5rem' }}>
-                    <a href={`/recipes/${r.id}`} onClick={(e) => {
-                      e.preventDefault();
-                      navigate(`/recipes/${r.id}`);
-                    }}>{r.title}</a>
+                    {r.title}
                   </td>
                   <td style={{ padding: '0.5rem' }}>{r.ingredientCount}</td>
                   <td style={{ padding: '0.5rem' }}>
@@ -131,10 +134,11 @@ export default function RecipeListPage() {
               ))}
             </tbody>
           </table>
+          </div>
 
           {selected.size > 0 && (
             <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <form onSubmit={handleCreateList} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <form onSubmit={handleCreateList} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <input
                   type="text"
                   value={listName}
@@ -153,16 +157,17 @@ export default function RecipeListPage() {
                     e.preventDefault();
                     if (!selectedListId) return;
                     try {
-                      const list = await addRecipesToShoppingList(
+                      await addRecipesToShoppingList(
                         selectedListId,
                         Array.from(selected)
                       );
-                      navigate(`/shopping-lists/${list.id}`);
+                      setSelected(new Set());
+                      onShoppingListCreated?.();
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Failed to add recipes');
                     }
                   }}
-                  style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                  style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}
                 >
                   <span>or add to:</span>
                   <select

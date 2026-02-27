@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { addRecipe } from '../api/client';
 import type { RecipeDetailResponse } from '../types';
 
-export default function AddRecipePage() {
+interface Props {
+  onRecipeAdded?: () => void;
+}
+
+export default function AddRecipePage({ onRecipeAdded }: Props) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +21,7 @@ export default function AddRecipePage() {
       const recipe = await addRecipe(url);
       setResult(recipe);
       setUrl('');
+      onRecipeAdded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add recipe');
     } finally {
@@ -27,14 +32,14 @@ export default function AddRecipePage() {
   return (
     <div>
       <h2>Add Recipe</h2>
-      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
+      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <input
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Paste recipe URL..."
           required
-          style={{ width: '400px', padding: '0.5rem', marginRight: '0.5rem' }}
+          style={{ flex: '1 1 200px', minWidth: 0, padding: '0.5rem' }}
         />
         <button type="submit" disabled={loading}>
           {loading ? 'Scraping...' : 'Add Recipe'}
