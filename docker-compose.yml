@@ -1,0 +1,15 @@
+services:
+  recipe-sniper:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - recipe-data:/app/data
+      - recipe-logs:/app/logs
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:/app/data/recipesniper
+      - LOGGING_FILE_NAME=/app/logs/recipe-sniper.log
+
+volumes:
+  recipe-data:
+  recipe-logs:
