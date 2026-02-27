@@ -111,6 +111,16 @@ export default function ShoppingListDetailPage({ listId, onBack, onDeleted }: Pr
     return parts.join(' ');
   };
 
+  const handleExport = () => {
+    if (!list) return;
+    const text = list.items.map(formatItem).join('\n');
+    const tab = window.open('', '_blank');
+    if (tab) {
+      tab.document.write(`<html><head><title>${list.name}</title></head><body><pre>${text}</pre></body></html>`);
+      tab.document.close();
+    }
+  };
+
   if (error && !list) return <p style={{ color: 'red' }}>{error}</p>;
   if (!list) return <p>Loading...</p>;
 
@@ -140,6 +150,7 @@ export default function ShoppingListDetailPage({ listId, onBack, onDeleted }: Pr
             </>
           ) : (
             <>
+              <button onClick={handleExport}>Export</button>
               <button onClick={startEditing}>Edit</button>
               <button onClick={handleDelete} style={{ color: 'red' }}>Delete</button>
             </>
