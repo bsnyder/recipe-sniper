@@ -17,7 +17,10 @@ export default function App() {
 
   return (
     <div className="app-container">
-      <h1>🎯 Recipe Sniper</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>🎯 Recipe Sniper</h1>
+        <a href="/h2-console" target="_blank" rel="noreferrer">DB Console</a>
+      </div>
 
       <section className="app-section">
         <AddRecipePage onRecipeAdded={handleRecipeAdded} />
